@@ -174,18 +174,45 @@ class ANN():
                     self.dy[0] = 0.0
 
                 # 단계 6. 은닉층의 입력 가중합 NETz를 구한 다음 시그모이드 함수로 출력 z를 구한다.
+                for h in range(0, self.hidden_node):
+                    for i in range(0, self.input_node):
+                        self.NETz[h] += self.x[p][i] * self.V[i][h]
+                    self.z[h] = self.sigmoidFunction(self.NETz[h])
                 
                 # 단계 7. 출력층의 입력 가중합 NETy를 구한 다음 시그모이드 함수로 최종 출력 y를 구한다.
+                for o in range(0, self.output_node):
+                    for h in range(0, self.hidden_node):
+                        self.NETy[o] += self.z[h] * self.W[h][o]
+                    self.y[o] = self.sigmoidFunction(self.NETy[o])
                 
                 # 단계 8. 목표치 d와 최종 출력 y를 비교하여 제곱오차 E를 계산한다.
+                for o in range(0, self.output_node):
+                    a = self.d[p][o] - self.y[o]
+                    e_sum += math.pow(a , 2) / 2
 
                 # 단계 9. 출력층의 오차 신호 dy를 구한다.
+                for o in range(0, self.output_node):
+                    for h in range(0, self.hidden_node):
+                        self.dy[o] = (self.d[p][o] - self.y[o]) * self.y[o] * (1 - self.y[o])
                 
                 # 단계 10. 은닉층에 전파되는 오차 신호 dz를 구한다.
+                for h in range(0, self.hidden_node):
+                    temp = 0
+                    for o in range(0, self.output_node):
+                        temp += self.dy[o] * self.W[h][o]
+                    self.dz[h] = self.z[h] * (1 - self.z[h]) * temp
                 
                 # 단계 11. 은닉층과 출력층 간의 연결 강도 변화량 dw를 계산하여 연결강도를 구한다.
+                for o in range(0, self.output_node):
+                    for h in range(0, self.hidden_node):
+                        dw = self.n * self.dy[o] * self.z[h]
+                        self.W[h][o] += dw
                 
                 # 단계 12. 입력층과 은닉층 간의 연결 강도 변화량 dv를 계산하여 연결강도를 구한다.
+                for h in range(0, self.hidden_node):
+                    for i in range(0, self.input_node):
+                        dv = self.n * self.dz[h] * self.x[p][i]
+                        self.V[i][h] += dv
 
             # 단계 13. 오차 E가 특정 범위 Emax보다 작아지면 학습을 종료한다.
             self.E = e_sum / p
